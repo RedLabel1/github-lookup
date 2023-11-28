@@ -14,6 +14,7 @@ import com.example.repos_ui.mapper.toUIModel
 import com.example.repos_ui.model.GitHubRepositoryUIModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -36,18 +37,21 @@ class GitHubRepositoriesHomeViewModel @Inject constructor(
     private val repositoriesState = MutableStateFlow<List<GitHubRepositoryUIModel>>(emptyList())
     private val selectedRepositoryState = MutableStateFlow<GitHubRepositoryUIModel?>(null)
     private val errorState = MutableStateFlow<Error>(NoError)
+    private val lookupAction = MutableStateFlow(false)
 
     val state = combine(
         repositoriesState,
         selectedRepositoryState,
         loadingState,
-        errorState
-    ) { repositories, selectedRepository, loading, error ->
+        errorState,
+        lookupAction
+    ) { repositories, selectedRepository, loading, error, lookupAction ->
         GitHubRepositoriesHomeViewState(
             gitHubRepositories = repositories,
             selectedRepository = selectedRepository,
             isLoading = loading > 0,
-            error = error
+            error = error,
+            lookupAction = lookupAction
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), GitHubRepositoriesHomeViewState.Empty)
 
@@ -99,6 +103,14 @@ class GitHubRepositoriesHomeViewModel @Inject constructor(
         }
     }
 
+    fun onLookupButtonClicked() = viewModelScope.launch {
+        lookupAction.emit(true)
+    }
+
+    fun restoreLookupState() = viewModelScope.launch {
+        lookupAction.emit(false)
+    }
+
     private fun incrementLoadingState() = loadingState.update { callCount.incrementAndGet() }
 
     private fun decrementLoadingState() = loadingState.update { callCount.decrementAndGet() }
@@ -112,7 +124,8 @@ data class GitHubRepositoriesHomeViewState(
     val gitHubRepositories: List<GitHubRepositoryUIModel> = emptyList(),
     val selectedRepository: GitHubRepositoryUIModel? = null,
     val isLoading: Boolean = false,
-    val error: Error = NoError
+    val error: Error = NoError,
+    val lookupAction: Boolean = false
 ) {
     companion object {
         val Empty = GitHubRepositoriesHomeViewState()

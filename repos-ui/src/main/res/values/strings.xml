@@ -5,4 +5,5 @@
     <string name="sort_results">Sort results</string>
     <string name="forks">Forks</string>
     <string name="language">Primary language</string>
+    <string name="look_up_repo">Look up repo</string>
 </resources>

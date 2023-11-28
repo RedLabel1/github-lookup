@@ -22,6 +22,8 @@ import kotlinx.coroutines.test.setMain
 import org.junit.Test
 import java.io.IOException
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GitHubRepositoriesHomeViewModelTest {
@@ -193,6 +195,50 @@ class GitHubRepositoriesHomeViewModelTest {
                 coVerify(exactly = 1) { getRepositoryStarsAndForks(any()) }
                 coVerify(exactly = 1) { getRepositoryLanguage(any()) }
                 confirmVerified(getAllRepositories, getRepositoryStarsAndForks, getRepositoryLanguage)
+            }
+        }
+    }
+
+    @Test
+    fun `onLookupButtonClicked emits true to lookupAction state`() = runTest {
+        val getAllRepositoriesResponse: GitHubRepositoryDomainModel = mockk(relaxed = true)
+        val getRepositoryStarsAndForksResponse: GitHubRepositoryDetailDomainModel = mockk(relaxed = true)
+        val selectedItem = getAllRepositoriesResponse.toUIModel().fill(with = getRepositoryStarsAndForksResponse)
+        coEvery { getAllRepositories() } returns Result.success(listOf(getAllRepositoriesResponse))
+        coEvery { getRepositoryStarsAndForks(any()) } returns Result.success(getRepositoryStarsAndForksResponse)
+        cut.apply {
+            state.test {
+                onItemSelected(selectedItem)
+                onLookupButtonClicked()
+                awaitItem() // getRepositoryStarsAndForks
+                awaitItem() // selectedRepository
+                assertTrue(awaitItem().lookupAction)
+                coVerify(exactly = 1) { getAllRepositories() }
+                coVerify(exactly = 1) { getRepositoryStarsAndForks(any()) }
+                confirmVerified(getAllRepositories, getRepositoryStarsAndForks)
+            }
+        }
+    }
+
+    @Test
+    fun `restoreLookupState emits false to lookupAction state`() = runTest {
+        val getAllRepositoriesResponse: GitHubRepositoryDomainModel = mockk(relaxed = true)
+        val getRepositoryStarsAndForksResponse: GitHubRepositoryDetailDomainModel = mockk(relaxed = true)
+        val selectedItem = getAllRepositoriesResponse.toUIModel().fill(with = getRepositoryStarsAndForksResponse)
+        coEvery { getAllRepositories() } returns Result.success(listOf(getAllRepositoriesResponse))
+        coEvery { getRepositoryStarsAndForks(any()) } returns Result.success(getRepositoryStarsAndForksResponse)
+        cut.apply {
+            state.test {
+                onItemSelected(selectedItem)
+                onLookupButtonClicked()
+                restoreLookupState()
+                awaitItem() // getRepositoryStarsAndForks
+                awaitItem() // selectedRepository
+                awaitItem() // lookupAction click
+                assertFalse(awaitItem().lookupAction)
+                coVerify(exactly = 1) { getAllRepositories() }
+                coVerify(exactly = 1) { getRepositoryStarsAndForks(any()) }
+                confirmVerified(getAllRepositories, getRepositoryStarsAndForks)
             }
         }
     }

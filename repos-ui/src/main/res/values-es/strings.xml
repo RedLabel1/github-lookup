@@ -6,4 +6,5 @@
     <string name="sort_results">Ordenar resultados</string>
     <string name="forks">Bifurcaciones</string>
     <string name="language">Idioma principal</string>
+    <string name="look_up_repo">Ver repo</string>
 </resources>

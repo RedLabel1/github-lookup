@@ -1,5 +1,7 @@
 package com.example.repos_ui.detail
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -19,6 +21,7 @@ import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+
 @AndroidEntryPoint
 class GitHubRepositoriesDetailFragment : Fragment(R.layout.fragment_github_repositories_detail) {
 
@@ -33,8 +36,15 @@ class GitHubRepositoriesDetailFragment : Fragment(R.layout.fragment_github_repos
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupUI()
         observeViewModel()
         viewModel.fetchSelectedRepositoryTopLanguage()
+    }
+
+    private fun setupUI() {
+        binding.lookupButton.setOnClickListener {
+            viewModel.onLookupButtonClicked()
+        }
     }
 
     private fun observeViewModel() {
@@ -48,6 +58,11 @@ class GitHubRepositoriesDetailFragment : Fragment(R.layout.fragment_github_repos
                     }
                     if (it.selectedRepository != null) {
                         displayAllValues(it.selectedRepository)
+                    }
+                    if (it.lookupAction) {
+                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(it.selectedRepository?.htmlUrl))
+                        startActivity(browserIntent)
+                        viewModel.restoreLookupState()
                     }
                 }
             }

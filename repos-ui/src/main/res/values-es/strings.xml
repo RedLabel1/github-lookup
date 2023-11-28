@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="name">Nombre</string>
+    <string name="description">Descripción</string>
+    <string name="stars">Estrellas</string>
+    <string name="sort_results">Ordenar resultados</string>
+    <string name="forks">Bifurcaciones</string>
+    <string name="language">Idioma principal</string>
+</resources>
